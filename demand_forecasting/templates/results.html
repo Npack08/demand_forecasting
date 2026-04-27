@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+
+{% block title %}Results | Demand Forecasting{% endblock %}
+
+{% block content %}
+<div class="section-card">
+    <h1>Experiment Results</h1>
+    <p>Review model performance metrics and compare recent training runs.</p>
+</div>
+
+<div class="section-card table-card">
+    <h2>Experiment History</h2>
+    {% if experiments %}
+    <div class="table-scroll">
+        <table>
+            <thead>
+                <tr>
+                    <th>Model Name</th>
+                    <th>Timestamp</th>
+                    <th>MAE</th>
+                    <th>RMSE</th>
+                    <th>Model File</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for exp in experiments %}
+                    <tr {% if exp.rmse == best_rmse %}style="background: rgba(63, 193, 201, 0.15); font-weight: 600;"{% endif %}>
+                        <td>{{ exp.model_name }}</td>
+                        <td>{{ exp.created_at }}</td>
+                        <td>{{ "%.2f"|format(exp.mae) }}</td>
+                        <td>{{ "%.2f"|format(exp.rmse) }}</td>
+                        <td>
+                            {% if exp.model_path %}
+                                <code>{{ exp.model_path }}</code>
+                            {% else %}
+                                N/A
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+        <p>No experiments available.</p>
+    {% endif %}
+</div>
+{% endblock %}

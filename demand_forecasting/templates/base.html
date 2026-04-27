@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{% block title %}Demand Forecasting{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" />
+</head>
+<body>
+    <div class="app-shell">
+        <header class="app-header">
+            <div class="brand">
+                <a href="/">Demand Forecast</a>
+            </div>
+            <nav class="app-nav">
+                <a href="/">Dataset</a>
+                <a href="/train">Train</a>
+                <a href="/results">Results</a>
+                <a href="/registry">Registry</a>
+                <a href="/inference">Inference</a>
+            </nav>
+        </header>
+
+        <main class="content-wrapper">
+            {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                    <div class="flash-grid">
+                        {% for message in messages %}
+                            <div class="flash-message">{{ message }}</div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endwith %}
+            {% block content %}{% endblock %}
+        </main>
+
+        <footer class="app-footer">
+            <span>University ML Platform — Demand Forecasting</span>
+        </footer>
+    </div>
+</body>
+</html>

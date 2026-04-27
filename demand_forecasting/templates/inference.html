@@ -1,0 +1,132 @@
+{% extends 'base.html' %}
+
+{% block title %}Inference | Demand Forecasting{% endblock %}
+
+{% block content %}
+<div class="section-card">
+    <h1>Inference Dashboard</h1>
+    <p>Choose a model and product to view prediction history and item details.</p>
+</div>
+
+<div class="section-card form-card">
+    <h2>Predict Demand</h2>
+    <form method="POST">
+        <label for="model_name">Select Model</label>
+        <select name="model_name" id="model_name">
+            {% for model in models %}
+                <option value="{{ model[0] }}" {% if selected_model == model[0] %}selected{% endif %}>{{ model[0] }}</option>
+            {% endfor %}
+        </select>
+
+        <label for="product_id">Select Product</label>
+        <select name="product_id" id="product_id">
+            {% for product in product_ids %}
+                <option value="{{ product }}" {% if selected_product == product %}selected{% endif %}>{{ product }}</option>
+            {% endfor %}
+        </select>
+
+        <p class="note">Note: Using sample input data for prediction.</p>
+        <button type="submit">Predict Demand</button>
+    </form>
+</div>
+
+<div class="section-card" id="itemInfo">
+    <h2>Item Being Predicted</h2>
+    <p>Loading item details...</p>
+</div>
+
+<div class="section-card table-card" id="chartContainer" style="max-width: 800px; margin: auto;">
+    <h2>Prediction History</h2>
+    <canvas id="predictionChart" style="height: 350px !important;"></canvas>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const modelSelect = document.getElementById('model_name');
+    const productSelect = document.getElementById('product_id');
+    const itemInfo = document.getElementById('itemInfo');
+    const predictionChartCanvas = document.getElementById('predictionChart');
+    let predictionChart;
+
+    function renderItemInfo(data) {
+        itemInfo.innerHTML = `
+            <h2>Item Being Predicted</h2>
+            <ul>
+                <li><strong>Product ID:</strong> ${data.product_id}</li>
+                <li><strong>Category:</strong> ${data.category}</li>
+                <li><strong>Store ID:</strong> ${data.store_id}</li>
+                <li><strong>Region:</strong> ${data.region}</li>
+            </ul>
+        `;
+    }
+
+    function updateChart(data) {
+        const chartData = {
+            labels: data.dates,
+            datasets: [{
+                label: 'Predicted Demand',
+                data: data.predictions,
+                fill: false,
+                borderColor: '#1f5fa6',
+                backgroundColor: '#1f5fa6',
+                tension: 0.3,
+                pointRadius: 4
+            }]
+        };
+
+        const config = {
+            type: 'line',
+            data: chartData,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        title: { display: true, text: 'Date' }
+                    },
+                    y: {
+                        title: { display: true, text: 'Predicted Demand' }
+                    }
+                }
+            }
+        };
+
+        if (predictionChart) {
+            predictionChart.data = chartData;
+            predictionChart.update();
+        } else {
+            predictionChart = new Chart(predictionChartCanvas, config);
+        }
+    }
+
+    async function fetchModelPredictions(modelName, productId) {
+        if (!modelName || !productId) {
+            itemInfo.innerHTML = '<p style="color: #c0392b;">Please select both a model and a product.</p>';
+            return;
+        }
+
+        try {
+            const response = await fetch(`/model_predictions/${encodeURIComponent(modelName)}?product_id=${encodeURIComponent(productId)}`);
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Failed to fetch model prediction history.');
+            }
+            const data = await response.json();
+            renderItemInfo(data);
+            updateChart(data);
+        } catch (error) {
+            itemInfo.innerHTML = `<p style="color: #c0392b;">${error.message}</p>`;
+            console.error(error);
+        }
+    }
+
+    function updateDashboard() {
+        fetchModelPredictions(modelSelect.value, productSelect.value);
+    }
+
+    modelSelect.addEventListener('change', updateDashboard);
+    productSelect.addEventListener('change', updateDashboard);
+
+    document.addEventListener('DOMContentLoaded', updateDashboard);
+</script>
+{% endblock %}

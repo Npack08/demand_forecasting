@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+
+{% block title %}Registry | Demand Forecasting{% endblock %}
+
+{% block content %}
+<div class="section-card">
+    <h1>Model Registry</h1>
+    <p>Browse the saved models and review their stored metrics and paths.</p>
+</div>
+
+<div class="section-card table-card">
+    <h2>Saved Models</h2>
+    {% if models %}
+    <div class="table-scroll">
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Model Path</th>
+                    <th>Metrics</th>
+                    <th>Created At</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for model in models %}
+                    <tr>
+                        <td>{{ model[1] }}</td>
+                        <td>{{ model[2] }}</td>
+                        <td>{{ model[3] }}</td>
+                        <td>{{ model[4] }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+        <p>No models in registry.</p>
+    {% endif %}
+</div>
+{% endblock %}

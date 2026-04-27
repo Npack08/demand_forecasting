@@ -1,0 +1,4 @@
+__pycache__/
+*.pyc
+demand_forecasting/database.db
+demand_forecasting/models/

@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+
+{% block title %}Train | Demand Forecasting{% endblock %}
+
+{% block content %}
+<div class="section-card">
+    <h1>Training & Experiments</h1>
+    <p>Select a model and run training on the demand forecasting dataset. Results are saved to the registry and experiment history.</p>
+</div>
+
+<div class="section-card form-card">
+    <h2>Train a Model</h2>
+    <form method="POST">
+        <label for="model_type">Model type</label>
+        <select name="model_type" id="model_type">
+            <option value="linear">Linear Regression</option>
+            <option value="rf">Random Forest Regressor</option>
+        </select>
+        <button type="submit">Train Model</button>
+    </form>
+</div>
+
+{% if training_result %}
+<div class="section-card">
+    <h2>Training Summary</h2>
+    <p><strong>Model Name:</strong> {{ training_result.model_name }}</p>
+    <p><strong>Model Type:</strong> {{ training_result.model_type }}</p>
+    <p><strong>MAE:</strong> {{ '%.2f'|format(training_result.mae) }}</p>
+    <p><strong>RMSE:</strong> {{ '%.2f'|format(training_result.rmse) }}</p>
+    <p><strong>Model Path:</strong> {{ training_result.model_path }}</p>
+    <p><strong>Timestamp:</strong> {{ training_result.timestamp }}</p>
+</div>
+{% endif %}
+{% endblock %}

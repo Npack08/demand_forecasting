@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+
+{% block title %}Dataset | Demand Forecasting{% endblock %}
+
+{% block content %}
+<div class="section-card">
+    <h1>Dataset Overview</h1>
+    <p>Review a sample of the dataset and key metadata before training.</p>
+</div>
+
+{% if preview %}
+<div class="section-card table-card">
+    <h2>Dataset Preview</h2>
+    <div class="table-scroll"> {{ preview|safe }} </div>
+</div>
+
+<div class="section-card">
+    <h2>Dataset Metadata</h2>
+    <div class="meta-grid">
+        <div><strong>Rows:</strong> {{ num_rows }}</div>
+        <div><strong>Columns:</strong> {{ num_cols }}</div>
+    </div>
+    <h3>Column Names</h3>
+    <ul>
+        {% for col in column_names %}
+            <li>{{ col }}</li>
+        {% endfor %}
+    </ul>
+    <h3>Missing Values</h3>
+    <ul>
+        {% for col, count in missing_values.items() %}
+            <li>{{ col }}: {{ count }}</li>
+        {% endfor %}
+    </ul>
+    <h3>Data Types</h3>
+    <ul>
+        {% for col, dtype in data_types.items() %}
+            <li>{{ col }}: {{ dtype }}</li>
+        {% endfor %}
+    </ul>
+</div>
+{% else %}
+<div class="section-card">
+    <p>No data available or error loading dataset.</p>
+</div>
+{% endif %}
+{% endblock %}
