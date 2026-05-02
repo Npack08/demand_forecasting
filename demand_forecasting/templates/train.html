@@ -1,12 +1,24 @@
 {% extends 'base.html' %}
 
-{% block title %}Train | Demand Forecasting{% endblock %}
+{% block title %}Train Model — Demand Forecast{% endblock %}
 
 {% block content %}
 <div class="section-card">
     <h1>Training & Experiments</h1>
     <p>Select a model and run training on the demand forecasting dataset. Results are saved to the registry and experiment history.</p>
 </div>
+
+{% block flash_messages %}
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="flash-grid">
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} mt-3">{{ message }}</div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+{% endblock %}
 
 <div class="section-card form-card">
     <h2>Train a Model</h2>

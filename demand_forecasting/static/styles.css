@@ -203,6 +203,43 @@ tr:hover {
     color: #1c3e70;
 }
 
+.alert {
+    padding: 14px 18px;
+    border-radius: 14px;
+    margin-bottom: 16px;
+    font-weight: 600;
+}
+
+.alert-success {
+    background: rgba(31, 167, 105, 0.12);
+    border: 1px solid rgba(31, 167, 105, 0.3);
+    color: #1f6f44;
+}
+
+.alert-danger {
+    background: rgba(201, 50, 44, 0.12);
+    border: 1px solid rgba(201, 50, 44, 0.3);
+    color: #7c1f20;
+}
+
+.card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+}
+
+.shadow-sm {
+    box-shadow: 0 10px 25px rgba(22, 46, 89, 0.08);
+}
+
+.mb-4 {
+    margin-bottom: 24px;
+}
+
+.mt-3 {
+    margin-top: 18px;
+}
+
 .app-footer {
     text-align: center;
     padding: 18px 32px;

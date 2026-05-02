@@ -115,18 +115,10 @@ def train():
             with get_db() as conn:
                 conn.execute('INSERT INTO models (name, model_path, metrics) VALUES (?, ?, ?)', (model_name, model_path, metrics))
                 conn.execute('INSERT INTO experiments (model_name, mae, rmse) VALUES (?, ?, ?)', (model_name, mae, rmse))
-            
-            training_result = {
-                'model_name': model_name,
-                'model_type': 'Linear Regression' if model_type == 'linear' else 'Random Forest Regressor',
-                'mae': mae,
-                'rmse': rmse,
-                'model_path': model_path,
-                'timestamp': timestamp
-            }
-            flash(f'Model {model_name} trained successfully.')
+            flash(f'Training complete! Model saved as {model_name}.', 'success')
+            return redirect(url_for('results'))
         except Exception as e:
-            flash(f'Error during training: {str(e)}')
+            flash(f'Error during training: {str(e)}', 'danger')
     return render_template('train.html', training_result=training_result)
 
 @app.route('/results')
@@ -160,10 +152,24 @@ def results():
 def registry():
     try:
         with get_db() as conn:
-            models = conn.execute('SELECT * FROM models ORDER BY created_at DESC').fetchall()
+            rows = conn.execute('SELECT id, name, model_path, metrics, created_at FROM models ORDER BY created_at DESC').fetchall()
+        models = []
+        for row in rows:
+            metrics = json.loads(row[3]) if row[3] else {}
+            models.append({
+                'id': row[0],
+                'name': row[1],
+                'model_path': row[2],
+                'metrics': {
+                    'mae': metrics.get('mae'),
+                    'rmse': metrics.get('rmse'),
+                    'features': metrics.get('features', [])
+                },
+                'created_at': row[4]
+            })
         return render_template('registry.html', models=models)
     except Exception as e:
-        flash(f'Error loading registry: {str(e)}')
+        flash(f'Error loading registry: {str(e)}', 'danger')
         return render_template('registry.html', models=None)
 
 @app.route('/inference', methods=['GET', 'POST'])

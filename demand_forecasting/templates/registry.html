@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block title %}Registry | Demand Forecasting{% endblock %}
+{% block title %}Model Registry — Demand Forecast{% endblock %}
 
 {% block content %}
 <div class="section-card">
@@ -24,10 +24,14 @@
             <tbody>
                 {% for model in models %}
                     <tr>
-                        <td>{{ model[1] }}</td>
-                        <td>{{ model[2] }}</td>
-                        <td>{{ model[3] }}</td>
-                        <td>{{ model[4] }}</td>
+                        <td>{{ model.name }}</td>
+                        <td>{{ model.model_path }}</td>
+                        <td>
+                            MAE: {{ model.metrics.mae }}<br>
+                            RMSE: {{ model.metrics.rmse }}<br>
+                            Features: {{ model.metrics.features|length }}
+                        </td>
+                        <td>{{ model.created_at }}</td>
                     </tr>
                 {% endfor %}
             </tbody>

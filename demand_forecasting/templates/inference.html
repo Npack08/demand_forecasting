@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block title %}Inference | Demand Forecasting{% endblock %}
+{% block title %}Inference — Demand Forecast{% endblock %}
 
 {% block content %}
 <div class="section-card">
@@ -30,14 +30,17 @@
     </form>
 </div>
 
-<div class="section-card" id="itemInfo">
-    <h2>Item Being Predicted</h2>
-    <p>Loading item details...</p>
+<div id="itemInfo" class="card p-3 shadow-sm mb-4">
+    <h5 class="mb-3">Item Being Predicted</h5>
+    <div><strong>Product ID:</strong> <span id="itemProductId">-</span></div>
+    <div><strong>Category:</strong> <span id="itemCategory">-</span></div>
+    <div><strong>Store ID:</strong> <span id="itemStoreId">-</span></div>
+    <div><strong>Region:</strong> <span id="itemRegion">-</span></div>
 </div>
 
-<div class="section-card table-card" id="chartContainer" style="max-width: 800px; margin: auto;">
+<div class="section-card table-card" id="chartContainer" style="max-width: 800px; max-height: 400px; margin: auto;">
     <h2>Prediction History</h2>
-    <canvas id="predictionChart" style="height: 350px !important;"></canvas>
+    <canvas id="predictionChart" style="height: 300px !important;"></canvas>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -49,15 +52,10 @@
     let predictionChart;
 
     function renderItemInfo(data) {
-        itemInfo.innerHTML = `
-            <h2>Item Being Predicted</h2>
-            <ul>
-                <li><strong>Product ID:</strong> ${data.product_id}</li>
-                <li><strong>Category:</strong> ${data.category}</li>
-                <li><strong>Store ID:</strong> ${data.store_id}</li>
-                <li><strong>Region:</strong> ${data.region}</li>
-            </ul>
-        `;
+        document.getElementById('itemProductId').textContent = data.product_id;
+        document.getElementById('itemCategory').textContent = data.category;
+        document.getElementById('itemStoreId').textContent = data.store_id;
+        document.getElementById('itemRegion').textContent = data.region;
     }
 
     function updateChart(data) {
@@ -66,11 +64,12 @@
             datasets: [{
                 label: 'Predicted Demand',
                 data: data.predictions,
-                fill: false,
-                borderColor: '#1f5fa6',
-                backgroundColor: '#1f5fa6',
+                borderColor: '#007bff',
+                backgroundColor: 'rgba(0, 123, 255, 0.2)',
                 tension: 0.3,
-                pointRadius: 4
+                pointRadius: 4,
+                pointHoverRadius: 6,
+                fill: true
             }]
         };
 
@@ -80,12 +79,26 @@
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                scales: {
-                    x: {
-                        title: { display: true, text: 'Date' }
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Prediction History',
+                        font: { size: 18 }
                     },
+                    tooltip: {
+                        callbacks: {
+                            label: function(ctx) {
+                                return ` ${ctx.parsed.y.toFixed(2)} units`;
+                            }
+                        }
+                    }
+                },
+                scales: {
                     y: {
                         title: { display: true, text: 'Predicted Demand' }
+                    },
+                    x: {
+                        title: { display: true, text: 'Date' }
                     }
                 }
             }
@@ -93,6 +106,7 @@
 
         if (predictionChart) {
             predictionChart.data = chartData;
+            predictionChart.options = config.options;
             predictionChart.update();
         } else {
             predictionChart = new Chart(predictionChartCanvas, config);
