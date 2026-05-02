@@ -280,10 +280,14 @@ def model_predictions(model_name):
 
         predictions = model.predict(X_predict).tolist()
         dates = product_df['Date'].dt.strftime('%Y-%m-%d').tolist()
+        
+        # Get actual demand values for the same date range
+        actual_demand = product_df['Demand'].tolist()
 
         return {
             'dates': dates,
             'predictions': predictions,
+            'actual_demand': actual_demand,
             'product_id': sample_input['Product ID'],
             'category': sample_input['Category'],
             'store_id': sample_input['Store ID'],

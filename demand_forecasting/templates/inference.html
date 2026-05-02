@@ -39,7 +39,7 @@
 </div>
 
 <div class="section-card table-card" id="chartContainer" style="max-width: 800px; max-height: 400px; margin: auto;">
-    <h2>Prediction History</h2>
+    <h2>Predicted vs Actual Demand</h2>
     <canvas id="predictionChart" style="height: 300px !important;"></canvas>
 </div>
 
@@ -70,6 +70,15 @@
                 pointRadius: 4,
                 pointHoverRadius: 6,
                 fill: true
+            }, {
+                label: 'Actual Demand',
+                data: data.actual_demand,
+                borderColor: '#28a745',
+                backgroundColor: 'rgba(40, 167, 69, 0.2)',
+                tension: 0.3,
+                pointRadius: 4,
+                pointHoverRadius: 6,
+                fill: true
             }]
         };
 
@@ -82,20 +91,20 @@
                 plugins: {
                     title: {
                         display: true,
-                        text: 'Prediction History',
+                        text: 'Predicted vs Actual Demand',
                         font: { size: 18 }
                     },
                     tooltip: {
                         callbacks: {
                             label: function(ctx) {
-                                return ` ${ctx.parsed.y.toFixed(2)} units`;
+                                return `${ctx.dataset.label}: ${ctx.parsed.y.toFixed(2)} units`;
                             }
                         }
                     }
                 },
                 scales: {
                     y: {
-                        title: { display: true, text: 'Predicted Demand' }
+                        title: { display: true, text: 'Demand (units)' }
                     },
                     x: {
                         title: { display: true, text: 'Date' }
