@@ -38,9 +38,81 @@
     <div><strong>Region:</strong> <span id="itemRegion">-</span></div>
 </div>
 
-<div class="section-card table-card" id="chartContainer" style="max-width: 800px; max-height: 400px; margin: auto;">
-    <h2>Predicted vs Actual Demand</h2>
-    <canvas id="predictionChart" style="height: 300px !important;"></canvas>
+<div class="section-card table-card" id="chartContainer" style="max-width: 1200px; max-height: 500px; margin: 30px auto; padding: 20px;">
+    <h2 style="margin-bottom: 10px;">Predicted vs Actual Demand</h2>
+    <canvas id="predictionChart" style="height: 400px !important;"></canvas>
+</div>
+
+<!-- Added by Sal - prediction discrepancy details section -->
+<div class="section-card table-card" id="salDiscrepancySection" style="max-width: 1100px; margin: 30px auto;">
+<h2>Prediction Discrepancy Details</h2>
+<p class="note">
+        This table compares predicted demand against actual demand and calculates the error in units and discrepancy percentage.
+</p>
+ 
+    <div class="table-scroll" style="max-height: 350px; overflow-y: auto;">
+<table>
+<thead>
+<tr>
+<th>Date</th>
+<th>Predicted Demand</th>
+<th>Actual Demand</th>
+<th>Prediction Error</th>
+<th>Absolute Error</th>
+<th>Discrepancy %</th>
+<th>Forecast Direction</th>
+</tr>
+</thead>
+<tbody id="salDiscrepancyTableBody">
+<tr>
+<td colspan="7">Select a model and product to view discrepancy details.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+ 
+<!-- Added by Sal - visual summary cards for prediction discrepancy -->
+<div class="section-card table-card" id="salSummarySection" style="max-width: 1100px; margin: 30px auto;">
+<h2>Discrepancy Summary</h2>
+<p class="note">
+        This summary highlights the overall prediction accuracy for the selected model and product.
+</p>
+ 
+    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-top: 20px;">
+<div style="background: #f4f7fb; padding: 18px; border-radius: 12px; text-align: center;">
+<h3 style="margin: 0; font-size: 16px;">Avg. Absolute Error</h3>
+<p id="avgAbsoluteError" style="font-size: 26px; font-weight: 700; margin: 10px 0;">-</p>
+<small>Units</small>
+</div>
+ 
+        <div style="background: #f4f7fb; padding: 18px; border-radius: 12px; text-align: center;">
+<h3 style="margin: 0; font-size: 16px;">Avg. Discrepancy</h3>
+<p id="avgDiscrepancyPercent" style="font-size: 26px; font-weight: 700; margin: 10px 0;">-</p>
+<small>Percentage</small>
+</div>
+ 
+        <div style="background: #f4f7fb; padding: 18px; border-radius: 12px; text-align: center;">
+<h3 style="margin: 0; font-size: 16px;">Highest Discrepancy</h3>
+<p id="maxDiscrepancyPercent" style="font-size: 26px; font-weight: 700; margin: 10px 0;">-</p>
+<small>Worst point</small>
+</div>
+ 
+        <div style="background: #f4f7fb; padding: 18px; border-radius: 12px; text-align: center;">
+<h3 style="margin: 0; font-size: 16px;">Forecast Pattern</h3>
+<p id="forecastPattern" style="font-size: 22px; font-weight: 700; margin: 10px 0;">-</p>
+<small>Overall direction</small>
+</div>
+</div>
+</div>
+ 
+<!-- Added by Sal - visual chart for discrepancy percentage -->
+<div class="section-card table-card" id="salDiscrepancyChartSection" style="max-width: 1200px; max-height: 500px; margin: 30px auto; padding: 20px;">
+<h2 style="margin-bottom: 10px;">Discrepancy Percentage Visual</h2>
+<p class="note" style="margin-bottom: 15px;">
+        This chart shows how far each prediction was from the actual demand using discrepancy percentage.
+</p>
+<canvas id="salDiscrepancyChart" style="height: 400px !important;"></canvas>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -88,11 +160,19 @@
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
+                layout: {
+                    padding: {
+                        top: 20,
+                        bottom: 20,
+                        left: 20,
+                        right: 20
+                    }
+                },
                 plugins: {
                     title: {
                         display: true,
                         text: 'Predicted vs Actual Demand',
-                        font: { size: 18 }
+                        font: { size: 20 }
                     },
                     tooltip: {
                         callbacks: {
@@ -104,10 +184,12 @@
                 },
                 scales: {
                     y: {
-                        title: { display: true, text: 'Demand (units)' }
+                        title: { display: true, text: 'Demand (units)', font: { size: 14 } },
+                        ticks: { padding: 10 }
                     },
                     x: {
-                        title: { display: true, text: 'Date' }
+                        title: { display: true, text: 'Date', font: { size: 14 } },
+                        ticks: { padding: 10 }
                     }
                 }
             }
@@ -121,6 +203,247 @@
             predictionChart = new Chart(predictionChartCanvas, config);
         }
     }
+
+    // Added by Sal - saves the original chart update function so we can add on without changing the existing chart
+
+    const originalUpdateChart = updateChart;
+
+    let salDiscrepancyChart;
+ 
+    // Added by Sal - calculates discrepancy details and displays them in a table, summary cards, and visual chart
+
+    updateChart = function(data) {
+
+        originalUpdateChart(data);
+ 
+        const discrepancyData = data.dates.map((date, index) => {
+
+            const predicted = Number(data.predictions[index]);
+
+            const actual = Number(data.actual_demand[index]);
+
+            const predictionError = predicted - actual;
+
+            const absoluteError = Math.abs(predictionError);
+ 
+            const discrepancyPercent = actual !== 0
+
+                ? absoluteError / actual * 100
+
+                : 0;
+ 
+            let forecastDirection = "Exact Match";
+ 
+            if (predictionError > 0) {
+
+                forecastDirection = "Over Forecast";
+
+            } else if (predictionError < 0) {
+
+                forecastDirection = "Under Forecast";
+
+            }
+ 
+            return {
+
+                date: date,
+
+                predicted: predicted,
+
+                actual: actual,
+
+                predictionError: predictionError,
+
+                absoluteError: absoluteError,
+
+                discrepancyPercent: discrepancyPercent,
+
+                forecastDirection: forecastDirection
+
+            };
+
+        });
+ 
+        // Added by Sal - fills the detailed discrepancy table
+
+        const tableBody = document.getElementById('salDiscrepancyTableBody');
+ 
+        tableBody.innerHTML = discrepancyData.map(row => `
+<tr>
+<td>${row.date}</td>
+<td>${row.predicted.toFixed(2)}</td>
+<td>${row.actual.toFixed(2)}</td>
+<td>${row.predictionError.toFixed(2)}</td>
+<td>${row.absoluteError.toFixed(2)}</td>
+<td>${row.discrepancyPercent.toFixed(2)}%</td>
+<td>${row.forecastDirection}</td>
+</tr>
+
+        `).join('');
+ 
+        // Added by Sal - summary calculations
+
+        const totalAbsoluteError = discrepancyData.reduce((sum, row) => sum + row.absoluteError, 0);
+
+        const totalDiscrepancyPercent = discrepancyData.reduce((sum, row) => sum + row.discrepancyPercent, 0);
+ 
+        const avgAbsoluteError = totalAbsoluteError / discrepancyData.length;
+
+        const avgDiscrepancyPercent = totalDiscrepancyPercent / discrepancyData.length;
+
+        const maxDiscrepancyPercent = Math.max(...discrepancyData.map(row => row.discrepancyPercent));
+ 
+        const overForecastCount = discrepancyData.filter(row => row.forecastDirection === "Over Forecast").length;
+
+        const underForecastCount = discrepancyData.filter(row => row.forecastDirection === "Under Forecast").length;
+ 
+        let forecastPattern = "Balanced";
+ 
+        if (overForecastCount > underForecastCount) {
+
+            forecastPattern = "Mostly Over";
+
+        } else if (underForecastCount > overForecastCount) {
+
+            forecastPattern = "Mostly Under";
+
+        }
+ 
+        document.getElementById('avgAbsoluteError').textContent = avgAbsoluteError.toFixed(2);
+
+        document.getElementById('avgDiscrepancyPercent').textContent = avgDiscrepancyPercent.toFixed(2) + "%";
+
+        document.getElementById('maxDiscrepancyPercent').textContent = maxDiscrepancyPercent.toFixed(2) + "%";
+
+        document.getElementById('forecastPattern').textContent = forecastPattern;
+ 
+        // Added by Sal - creates a separate discrepancy percentage chart
+
+        const discrepancyChartCanvas = document.getElementById('salDiscrepancyChart');
+ 
+        const discrepancyChartData = {
+
+            labels: discrepancyData.map(row => row.date),
+
+            datasets: [{
+
+                label: 'Discrepancy %',
+
+                data: discrepancyData.map(row => row.discrepancyPercent),
+
+                borderColor: '#ff9800',
+
+                backgroundColor: 'rgba(255, 152, 0, 0.20)',
+
+                tension: 0.3,
+
+                pointRadius: 4,
+
+                pointHoverRadius: 6,
+
+                fill: true
+
+            }]
+
+        };
+ 
+        const discrepancyChartConfig = {
+
+            type: 'line',
+
+            data: discrepancyChartData,
+
+            options: {
+
+                responsive: true,
+
+                maintainAspectRatio: false,
+
+                layout: {
+
+                    padding: {
+
+                        top: 20,
+
+                        bottom: 20,
+
+                        left: 20,
+
+                        right: 20
+
+                    }
+
+                },
+
+                plugins: {
+
+                    title: {
+
+                        display: true,
+
+                        text: 'Discrepancy Percentage by Date',
+
+                        font: { size: 20 }
+
+                    },
+
+                    tooltip: {
+
+                        callbacks: {
+
+                            label: function(ctx) {
+
+                                return `${ctx.dataset.label}: ${ctx.parsed.y.toFixed(2)}%`;
+
+                            }
+
+                        }
+
+                    }
+
+                },
+
+                scales: {
+
+                    y: {
+
+                        title: { display: true, text: 'Discrepancy %', font: { size: 14 } },
+
+                        beginAtZero: true,
+
+                        ticks: { padding: 10 }
+
+                    },
+
+                    x: {
+
+                        title: { display: true, text: 'Date', font: { size: 14 } },
+
+                        ticks: { padding: 10 }
+
+                    }
+
+                }
+
+            }
+
+        };
+ 
+        if (salDiscrepancyChart) {
+
+            salDiscrepancyChart.data = discrepancyChartData;
+
+            salDiscrepancyChart.options = discrepancyChartConfig.options;
+
+            salDiscrepancyChart.update();
+
+        } else {
+
+            salDiscrepancyChart = new Chart(discrepancyChartCanvas, discrepancyChartConfig);
+
+        }
+
+    };
 
     async function fetchModelPredictions(modelName, productId) {
         if (!modelName || !productId) {
